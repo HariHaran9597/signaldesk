@@ -1,5 +1,13 @@
 # Run and release Signaldesk
 
+## Live release
+
+- Public repository: [github.com/HariHaran9597/signaldesk](https://github.com/HariHaran9597/signaldesk)
+- Read-only demo: [hariharan9597.github.io/signaldesk](https://hariharan9597.github.io/signaldesk/)
+- CI checks: [GitHub Actions](https://github.com/HariHaran9597/signaldesk/actions)
+
+The static demo is the shipped public product. The full-stack Compose app is a local portfolio preview and is intentionally not exposed as a public API.
+
 ## Local portfolio demo
 
 The supported full-stack target is a local demo. It binds the web app to loopback and includes the API, a PostgreSQL database, scheduled collectors, and static frontend. Compose starts in read-only public-demo mode: generated drafts, evidence packets, and traces are hidden, while X intake and generation are disabled. It does not require paid services. The app can collect and read sources without an inference key; direct local draft generation requires a compatible free-only key.
@@ -25,7 +33,7 @@ $env:VITE_BASE_PATH = '/signaldesk/'
 npm run build:demo
 ```
 
-GitHub Pages uses the Actions source; the publish workflow runs on pushes to `main`, every six hours, or manually. A public static deployment can be released independently of the interactive API. The project includes an MIT license; publisher content remains attributed and linked to its original source. No static public URL exists until the repository is published and the workflow completes.
+GitHub Pages uses the Actions source; the publish workflow runs on pushes to `main`, every six hours, or manually. A public static deployment can be released independently of the interactive API. The project includes an MIT license; publisher content remains attributed and linked to its original source. The read-only static release is live at the URL above. CI verifies backend tests, frontend production/demo builds, and the Compose PostgreSQL/read-only-mode smoke test.
 
 The full API is not ready for public hosting. It has no user authentication or roles, and the local draft action is not an editorial authorization system. Do not expose the API stack or change its loopback binding to a public interface. Before hosting the full service, complete and verify all of these:
 
@@ -33,6 +41,6 @@ The full API is not ready for public hosting. It has no user authentication or r
 - Validate migrations and worker operation against PostgreSQL on the intended host, then exercise backup and restore from an off-host backup.
 - Configure production-only secrets, restrictive network access to PostgreSQL, HTTPS, secure headers, and an authenticated admin allowlist.
 - Run desktop and mobile smoke checks, inspect a representative sample of generated drafts, and publish a privacy/data-retention notice for any hosted user data.
-- Set up the public repository, CI run, code license, domain/DNS, monitoring, and rollback procedure. The current checkout has no Git remote, and no external cloud resources have been created.
+- Optional follow-up before hosting the full API: configure a custom domain, monitoring, and a rollback procedure. The static demo currently uses GitHub Pages and does not require separate cloud infrastructure.
 
 Do not describe the synthetic 20-case evaluation as model accuracy. Its current rubric and limitations are documented in `evals/README.md`.

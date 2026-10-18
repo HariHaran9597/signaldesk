@@ -2,7 +2,7 @@
 
 A personal AI reading desk. This first build collects real publisher feeds and provides topic preferences, search, saved items, original-source details, and collection status.
 
-**Status: local portfolio demo plus a scheduled, read-only GitHub Pages release path.** The app collects public sources, prepares cited drafts, and keeps every draft in human review. The public build contains only source/model snapshots; private drafts and model traces stay local. Read [BLUEPRINT.md](BLUEPRINT.md) for scope and [DEPLOYMENT.md](DEPLOYMENT.md) for setup and release limits.
+**Status: shipped portfolio project with a live, scheduled read-only demo.** Open the [public demo](https://hariharan9597.github.io/signaldesk/) or [source repository](https://github.com/HariHaran9597/signaldesk). The app collects public sources, prepares cited drafts, and keeps every draft in human review. The public build contains only source/model snapshots; private drafts and model traces stay local. Read [BLUEPRINT.md](BLUEPRINT.md) for scope and [DEPLOYMENT.md](DEPLOYMENT.md) for setup and release limits.
 
 ![Signaldesk source evidence view](evidence-preview.png)
 
@@ -102,11 +102,11 @@ Topic tags currently reflect publisher categories. A NVIDIA article about agents
 
 ## Deliberate release limits
 
-Automated X collection, full-article research tools, editorial approval/publishing, authentication, and multi-user data are outside this release. The scheduled Pages workflow publishes a sanitized snapshot; the full API stack is not publicly hosted. The 20-case synthetic fixture has a free-lane evaluation runner; one smoke run scored 20/20 expected dispositions and 45% literal phrase coverage, with rubric limitations documented in `evals/README.md`. Compose configuration and migrations are validated, but Docker image builds and PostgreSQL runtime still need a running Docker engine. Reading and evidence preparation work without an inference key. Some publisher feeds supply no excerpt; those records need more evidence before drafting.
+Automated X collection, full-article research tools, editorial approval/publishing, authentication, and multi-user data are outside this release. The scheduled Pages workflow publishes a sanitized snapshot; the full API stack is not publicly hosted. The 20-case synthetic fixture has a free-lane evaluation runner; one smoke run scored 20/20 expected dispositions and 45% literal phrase coverage, with rubric limitations documented in `evals/README.md`. GitHub Actions builds and starts the Docker Compose stack, applies PostgreSQL migrations, and checks read-only mode. Reading and evidence preparation work without an inference key. Some publisher feeds supply no excerpt; those records need more evidence before drafting.
 
 ## Verify
 
-The current regression suite passes **46 tests**, including a populated legacy-database migration, repeat-upgrade, public-demo privacy checks, and model-history calculations. Both the regular frontend build and the static demo build pass. A live Experiential free-lane draft passed exact-citation checks and model review, ending in `needs_review`. Its successful writing and review calls each reported `usage.cost = 0`; traces recorded 457 and 120 completion tokens respectively. An earlier review was truncated by its smaller token allowance and was explicitly retried with a bounded larger allowance. This is one integration smoke test, not a general accuracy result.
+The current regression suite passes **46 tests**, including a populated legacy-database migration, repeat-upgrade, public-demo privacy checks, and model-history calculations. Both the regular frontend build and the static demo build pass. GitHub Actions also verifies the Docker Compose PostgreSQL migration and read-only public mode. A live Experiential free-lane draft passed exact-citation checks and model review, ending in `needs_review`. Its successful writing and review calls each reported `usage.cost = 0`; traces recorded 457 and 120 completion tokens respectively. An earlier review was truncated by its smaller token allowance and was explicitly retried with a bounded larger allowance. This is one integration smoke test, not a general accuracy result.
 
 Browser verification confirmed the live queue, source schedules/heartbeat, status filtering, draft expansion, original excerpt, citations, model name, and limitations. The backend key was checked to be absent from Git-visible files and the frontend build. The collector has been launched locally; it runs only while that process and laptop remain on.
 
@@ -118,7 +118,7 @@ npm run build
 
 Initial live ingestion collected 40 Hugging Face, 40 NVIDIA, and 26 MCP items. Software tests cover parsing, unsafe links/XML, idempotency, revisions, API limits, worker leases/retries, citation rejection, and model failure. They are not AI factuality evaluations. Provider tests use a mock transport so CI does not require a key or spend quota.
 
-A second live collection added zero duplicates. Browser checks verified interest-based ordering, saving an article, persistence after reload, evidence details, and source status in the narrow in-app viewport. A CI workflow is included; it has not run on GitHub because this checkout has no remote. Docker image and PostgreSQL runtime checks require a host with Docker available.
+A second live collection added zero duplicates. Browser checks verified interest-based ordering, saving an article, persistence after reload, evidence details, and source status in the narrow in-app viewport. The published Pages build refreshes on pushes to `main` and every six hours. The snapshot exporter and static demo build are reproducible from the commands above.
 
 ## Layout
 
