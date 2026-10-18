@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: signaldesk
+      POSTGRES_USER: signaldesk
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U signaldesk -d signaldesk"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+
+  api:
+    build: .
+    command: ["sh", "-c", "uv run --frozen python -m backend.migrate && exec uv run --frozen uvicorn backend.main:create_app --factory --host 0.0.0.0 --port 8787"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://signaldesk:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/signaldesk
+      SIGNALDESK_PUBLIC_DEMO: "true"
+      SIGNALDESK_LOCAL_X_INTAKE: "false"
+      SIGNALDESK_LOCAL_DRAFT_ACTIONS: "false"
+      SIGNALDESK_LOCAL_PROXY_ACTIONS: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8787/health', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    restart: unless-stopped
+
+  worker:
+    build: .
+    command: ["uv", "run", "--frozen", "python", "-m", "backend.worker"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://signaldesk:${POSTGRES_PASSWORD:-local-only-signaldesk}@db:5432/signaldesk
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  postgres-data:

@@ -1,0 +1,76 @@
+name: Publish read-only demo
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '13 */6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install uv
+        run: python -m pip install uv==0.9.3
+      - name: Install backend dependencies
+        run: uv sync --frozen --group dev
+      - name: Collect public sources
+        run: uv run python -m backend.ingest
+        continue-on-error: true
+        env:
+          DATABASE_URL: sqlite:///./data/signaldesk.db
+          INFERENCE_PROVIDER: evidence
+      - name: Export sanitized static snapshot
+        run: uv run python -m backend.export_demo --output frontend/public/demo-data.json
+        continue-on-error: true
+        env:
+          DATABASE_URL: sqlite:///./data/signaldesk.db
+          INFERENCE_PROVIDER: evidence
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+      - name: Build static read-only site
+        working-directory: frontend
+        run: npm ci && npm run build:demo
+        env:
+          VITE_DEMO_MODE: 'true'
+          VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}/
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Persist the public snapshot and model history
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/demo-data.json frontend/public/model-history.json
+          if git diff --cached --quiet; then
+            echo "Public snapshot and history are unchanged."
+          else
+            git commit -m "chore: refresh public demo snapshot"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi

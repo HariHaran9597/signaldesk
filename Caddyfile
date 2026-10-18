@@ -1,0 +1,19 @@
+:8080 {
+	encode zstd gzip
+	header {
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+	}
+	handle /api/* {
+		reverse_proxy api:8787
+	}
+	handle /health {
+		reverse_proxy api:8787
+	}
+	root * /srv
+	try_files {path} /index.html
+	file_server
+}

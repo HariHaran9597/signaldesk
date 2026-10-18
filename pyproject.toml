@@ -1,0 +1,25 @@
+[project]
+name = "signaldesk"
+version = "0.1.0"
+description = "An evidence-first, personalized AI briefing — source ingestion prototype"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.32,<1",
+  "sqlalchemy>=2.0,<3",
+  "httpx>=0.28,<1",
+  "defusedxml>=0.7,<1",
+  "langgraph>=1,<2",
+  "python-dotenv>=1,<2",
+  "alembic>=1.14,<2",
+]
+
+[dependency-groups]
+dev = ["pytest>=8,<10"]
+
+[project.optional-dependencies]
+postgres = ["psycopg[binary]>=3.2,<4"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
