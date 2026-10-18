@@ -57,12 +57,12 @@ jobs:
           VITE_DEMO_MODE: 'true'
           VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}/
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: frontend/dist
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@v5.0.1
       - name: Persist the public snapshot and model history
         run: |
           git config user.name "github-actions[bot]"

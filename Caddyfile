@@ -13,7 +13,9 @@
 	handle /health {
 		reverse_proxy api:8787
 	}
-	root * /srv
-	try_files {path} /index.html
-	file_server
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
 }
