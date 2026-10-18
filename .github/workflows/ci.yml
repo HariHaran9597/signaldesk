@@ -32,3 +32,24 @@ jobs:
         env:
           VITE_DEMO_MODE: 'true'
           VITE_BASE_PATH: /signaldesk/
+  containers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create a local-only container environment
+        run: |
+          printf 'POSTGRES_PASSWORD=ci-local-only-not-a-secret\nINFERENCE_PROVIDER=evidence\n' > .env
+      - name: Build and start the Compose stack
+        run: docker compose up -d --build
+      - name: Verify PostgreSQL migrations and read-only public mode
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8080/health >/dev/null; then break; fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:8080/health | jq -e '.status == "ok"'
+          curl -fsS http://127.0.0.1:8080/api/capabilities | jq -e '.public_demo == true and .draft_generation == false and .draft_queue == false and .local_x_intake == false'
+          curl -fsS http://127.0.0.1:8080/api/drafts | jq -e '.drafts == []'
+      - name: Stop containers and remove the temporary database
+        if: always()
+        run: docker compose down -v

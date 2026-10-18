@@ -6,6 +6,8 @@ WORKDIR /app
 COPY --from=uv-bin /uv /uvx /bin/
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --extra postgres
+COPY alembic.ini ./
+COPY migrations/ ./migrations/
 COPY backend/ ./backend/
 RUN useradd --create-home --uid 10001 signaldesk && chown -R signaldesk:signaldesk /app
 USER signaldesk
